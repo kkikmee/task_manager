@@ -40,6 +40,7 @@ def logout_view(request):
     messages.success(request, 'Вы успешно вышли из системы')
     return redirect('users:login')
 
+
 def register_view(request):
     """
     Страница регистрации пользователя.
