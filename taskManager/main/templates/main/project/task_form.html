@@ -1,0 +1,481 @@
+<!-- templates/tasks/task_form.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Task Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'users:project_list' %}">Проекты</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:project_detail' project.id %}">{{ project.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+
+            <!-- Карточка формы -->
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>{{ title }}
+                        </h4>
+                        <p class="mb-0 text-muted small">Проект: <strong>{{ project.name }}</strong></p>
+                    </div>
+                    <div class="project-color" style="width: 30px; height: 30px; background-color: {{ project.color }}; border-radius: 4px;"></div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Вывод общих ошибок формы -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Левая колонка - Основная информация -->
+                            <div class="col-lg-8">
+                                <!-- Название задачи -->
+                                <div class="mb-4">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                        Название задачи *
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.title.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Кратко и понятно опишите задачу</div>
+                                </div>
+
+                                <!-- Описание -->
+                                <div class="mb-4">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                        Описание задачи
+                                    </label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.description.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Детально опишите задачу, добавьте требования и критерии выполнения
+                                    </div>
+                                </div>
+
+                                <!-- Дополнительная информация -->
+                                <div class="card border-light mb-4">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-primary mb-3">
+                                            <i class="bi bi-info-square me-2"></i>Дополнительная информация
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            <i class="bi bi-lightbulb text-warning me-1"></i>
+                                            Задача будет автоматически привязана к проекту "{{ project.name }}"
+                                        </p>
+                                        {% if task %}
+                                            <p class="small text-muted mb-0 mt-1">
+                                                <i class="bi bi-clock text-info me-1"></i>
+                                                Создана: {{ task.created_at|date:"d.m.Y H:i" }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Правая колонка - Детали задачи -->
+                            <div class="col-lg-4">
+                                <div class="sticky-top" style="top: 20px;">
+                                    <!-- Статус -->
+                                    <div class="mb-4">
+                                        <label for="{{ form.status.id_for_label }}" class="form-label fw-bold">
+                                            Статус
+                                        </label>
+                                        {{ form.status }}
+                                        {% if form.status.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.status.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Приоритет -->
+                                    <div class="mb-4">
+                                        <label for="{{ form.priority.id_for_label }}" class="form-label fw-bold">
+                                            Приоритет
+                                        </label>
+                                        {{ form.priority }}
+                                        {% if form.priority.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.priority.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text small">
+                                            <i class="bi bi-circle-fill text-danger me-1"></i> Высокий - срочно
+                                            <br>
+                                            <i class="bi bi-circle-fill text-warning me-1"></i> Средний - важно
+                                            <br>
+                                            <i class="bi bi-circle-fill text-success me-1"></i> Низкий - планируется
+                                        </div>
+                                    </div>
+
+                                    <!-- Исполнитель -->
+                                    <div class="mb-4">
+                                        <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-bold">
+                                            Исполнитель
+                                        </label>
+                                        {{ form.assigned_to }}
+                                        {% if form.assigned_to.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.assigned_to.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text small">
+                                            {% if project.team_members.count > 0 %}
+                                                Доступно {{ project.team_members.count }} участников
+                                            {% else %}
+                                                <span class="text-warning">В проекте нет других участников</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Срок выполнения -->
+                                    <div class="mb-4">
+                                        <label for="{{ form.due_date.id_for_label }}" class="form-label fw-bold">
+                                            Срок выполнения
+                                        </label>
+                                        {{ form.due_date }}
+                                        {% if form.due_date.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.due_date.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text small">
+                                            Укажите дату, к которой задача должна быть выполнена
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Кнопки действия -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <a href="{% url 'main:project_detail' project.id %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-left me-1"></i>Назад к проекту
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        {% if task %}
+                                            <!-- Для редактирования задачи -->
+                                            <a href="{% url 'main:task_delete' task.id %}" class="btn btn-outline-danger" 
+                                               onclick="return confirm('Удалить задачу \"{{ task.title }}\"?')">
+                                                <i class="bi bi-trash me-1"></i>Удалить
+                                            </a>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary px-4">
+                                            <i class="bi bi-check-lg me-1"></i>
+                                            {% if task %}Обновить задачу{% else %}Создать задачу{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Подсказки и информация -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title text-info">
+                                <i class="bi bi-lightbulb me-2"></i>Советы по созданию задачи
+                            </h6>
+                            <ul class="small mb-0">
+                                <li>Название должно быть конкретным и измеримым</li>
+                                <li>Добавьте детальное описание для ясности</li>
+                                <li>Установите реалистичный срок выполнения</li>
+                                <li>Назначьте ответственного исполнителя</li>
+                                <li>Выберите соответствующий приоритет</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title text-success">
+                                <i class="bi bi-clock me-2"></i>Работа со статусами
+                            </h6>
+                            <ul class="small mb-0">
+                                <li><strong>К выполнению</strong> - новая задача</li>
+                                <li><strong>В процессе</strong> - работа над задачей</li>
+                                <li><strong>На проверке</strong> - готово для проверки</li>
+                                <li><strong>Выполнено</strong> - задача завершена</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрые шаблоны задач -->
+            {% if not task %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning bg-opacity-10">
+                            <h6 class="mb-0">
+                                <i class="bi bi-lightning me-2"></i>Быстрые шаблоны
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 quick-template" 
+                                            data-title="Разработать дизайн" data-desc="Создать макет и визуальное оформление">
+                                        🎨 Дизайн
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 quick-template" 
+                                            data-title="Написать документацию" data-desc="Создать техническую документацию по проекту">
+                                        📝 Документация
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 quick-template" 
+                                            data-title="Протестировать функционал" data-desc="Провести тестирование указанного функционала">
+                                        🧪 Тестирование
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    text-decoration: none;
+    color: #4e73df;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+.form-label {
+    color: #495057;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}
+
+/* Стили для текстовых полей */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Стили для селектов */
+.form-select {
+    cursor: pointer;
+}
+
+/* Sticky sidebar на мобильных */
+@media (max-width: 992px) {
+    .sticky-top {
+        position: static !important;
+    }
+}
+
+/* Проектная метка */
+.project-color {
+    border: 2px solid #dee2e6;
+}
+
+/* Анимации */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.quick-template:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем классы Bootstrap к полям формы
+    const textInputs = document.querySelectorAll('input[type="text"], textarea, select');
+    textInputs.forEach(input => {
+        if (!input.classList.contains('form-control') && !input.classList.contains('form-select')) {
+            input.classList.add('form-control');
+        }
+    });
+
+    // Автоматическая установка даты (следующий день)
+    const dueDateInput = document.getElementById('{{ form.due_date.id_for_label }}');
+    if (dueDateInput && !dueDateInput.value) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dueDateInput.value = tomorrow.toISOString().split('T')[0];
+    }
+
+    // Быстрые шаблоны задач
+    document.querySelectorAll('.quick-template').forEach(button => {
+        button.addEventListener('click', function() {
+            const title = this.getAttribute('data-title');
+            const description = this.getAttribute('data-desc');
+            
+            // Заполняем поля
+            document.getElementById('{{ form.title.id_for_label }}').value = title;
+            document.getElementById('{{ form.description.id_for_label }}').value = description;
+            
+            // Устанавливаем стандартные значения
+            document.getElementById('{{ form.status.id_for_label }}').value = 'todo';
+            document.getElementById('{{ form.priority.id_for_label }}').value = 'medium';
+            
+            // Фокус на поле названия
+            document.getElementById('{{ form.title.id_for_label }}').focus();
+            
+            // Показываем уведомление
+            showNotification('Шаблон "' + title + '" применен!', 'info');
+        });
+    });
+
+    // Валидация формы
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        if (!titleField.value.trim()) {
+            e.preventDefault();
+            titleField.focus();
+            showNotification('Пожалуйста, заполните название задачи', 'error');
+            return false;
+        }
+        
+        // Проверка срока выполнения
+        if (dueDateInput && dueDateInput.value) {
+            const selectedDate = new Date(dueDateInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                if (!confirm('Выбранная дата уже прошла. Вы уверены, что хотите установить просроченный срок?')) {
+                    e.preventDefault();
+                    dueDateInput.focus();
+                    return false;
+                }
+            }
+        }
+    });
+
+    // Функция показа уведомлений
+    function showNotification(message, type = 'info') {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type === 'error' ? 'danger' : 'info'} alert-dismissible fade show`;
+        alert.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        // Автоматическое скрытие через 5 секунд
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }, 5000);
+    }
+
+    // Динамическое обновление подсказки об исполнителях
+    const assignedSelect = document.getElementById('{{ form.assigned_to.id_for_label }}');
+    if (assignedSelect) {
+        assignedSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                console.log('Выбран исполнитель:', selectedOption.text);
+            }
+        });
+    }
+
+    // Подсветка обязательных полей
+    const requiredFields = document.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+        const label = document.querySelector(`label[for="${field.id}"]`);
+        if (label) {
+            const requiredMark = document.createElement('span');
+            requiredMark.className = 'text-danger ms-1';
+            requiredMark.textContent = '*';
+            label.appendChild(requiredMark);
+        }
+    });
+});
+</script>
+{% endblock %}

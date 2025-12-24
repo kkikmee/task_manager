@@ -1,0 +1,292 @@
+<!-- templates/tasks/project_form.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Task Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'users:project_list' %}">Проекты</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+
+            <!-- Карточка формы -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>{{ title }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Вывод общих ошибок формы -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Основная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Основная информация
+                                </h5>
+                            </div>
+                            
+                            <!-- Название проекта -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    Название проекта *
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Укажите понятное название проекта</div>
+                            </div>
+
+                            <!-- Цвет проекта -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.color.id_for_label }}" class="form-label">
+                                    Цвет проекта
+                                </label>
+                                <div class="input-group">
+                                    {{ form.color }}
+                                    <span class="input-group-text color-preview" id="colorPreview" 
+                                          style="background-color: {{ form.color.value|default:'#007bff' }}"></span>
+                                </div>
+                                {% if form.color.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.color.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Выберите цвет для визуального выделения</div>
+                            </div>
+
+                            <!-- Описание -->
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    Описание проекта
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Опишите цели и задачи проекта</div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки доступа -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="bi bi-shield-lock me-2"></i>Настройки доступа
+                                </h5>
+                            </div>
+                            
+                            <!-- Видимость проекта -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Тип проекта</label>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle text-info me-1"></i>
+                                    Проект будет виден только вам и приглашенным участникам
+                                </div>
+                            </div>
+
+                            <!-- Автоматическое добавление -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" checked disabled>
+                                    <label class="form-check-label">
+                                        Вы будете автоматически добавлены как менеджер проекта
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Кнопки действия -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <a href="{% url 'users:project_list' %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-left me-1"></i>Отмена
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary px-4">
+                                            <i class="bi bi-check-lg me-1"></i>
+                                            {% if project %}Обновить проект{% else %}Создать проект{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Подсказки -->
+
+            <div class="row mt-4">
+                
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title text-success">
+                                <i class="bi bi-people me-2"></i>После создания
+                            </h6>
+                            <ul class="small mb-0">
+                                <li>Пригласите участников в проект</li>
+                                <li>Назначьте ответственных за задачи</li>
+                                <li>Установите сроки выполнения</li>
+                                <li>Регулярно обновляйте статусы задач</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.color-preview {
+    width: 40px;
+    border: 1px solid #ced4da;
+    border-left: none;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}
+
+/* Стили для текстовых полей */
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Анимации */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновление preview цвета
+    const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+    const colorPreview = document.getElementById('colorPreview');
+    
+    if (colorInput && colorPreview) {
+        colorInput.addEventListener('input', function() {
+            colorPreview.style.backgroundColor = this.value;
+        });
+        
+        // Инициализация preview
+        colorPreview.style.backgroundColor = colorInput.value || '#007bff';
+    }
+
+    // Валидация формы
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const nameField = document.getElementById('{{ form.name.id_for_label }}');
+        if (!nameField.value.trim()) {
+            e.preventDefault();
+            nameField.focus();
+            alert('Пожалуйста, заполните название проекта');
+            return false;
+        }
+    });
+
+    // Подсказка для быстрого создания задач
+    const quickTasksTextarea = document.getElementById('quickTasks');
+    if (quickTasksTextarea) {
+        quickTasksTextarea.addEventListener('input', function() {
+            const lines = this.value.split('\n').filter(line => line.trim().length > 0);
+            const taskCount = lines.length;
+            
+            // Можно добавить отображение количества задач
+            console.log(`Будет создано задач: ${taskCount}`);
+        });
+    }
+
+    // Добавляем классы Bootstrap к полям формы
+    const formControls = document.querySelectorAll('input, textarea, select');
+    formControls.forEach(control => {
+        if (!control.classList.contains('form-check-input')) {
+            control.classList.add('form-control');
+        }
+    });
+
+    // Особые стили для цветового поля
+    if (colorInput) {
+        colorInput.classList.add('form-control-color');
+    }
+});
+</script>
+{% endblock %}

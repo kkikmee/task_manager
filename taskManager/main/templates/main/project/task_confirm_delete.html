@@ -1,0 +1,322 @@
+<!-- templates/tasks/task_confirm_delete.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Удаление задачи - Task Manager{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'users:project_list' %}">Проекты</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:project_detail' task.project.id %}">{{ task.project.name }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:task_edit' task.id %}">{{ task.title|truncatechars:20 }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">Удаление</li>
+                </ol>
+            </nav>
+
+            <!-- Карточка подтверждения удаления -->
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-exclamation-triangle-fill display-6"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="mb-0">Подтверждение удаления</h4>
+                            <p class="mb-0 small opacity-75">Это действие нельзя отменить</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Информация о задаче -->
+                    <div class="alert alert-warning mb-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="alert-heading mb-2">Вы собираетесь удалить задачу</h6>
+                                <p class="mb-0">Все данные, связанные с этой задачей, будут безвозвратно удалены.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Детали задачи -->
+                    <div class="card border-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger mb-3">
+                                <i class="bi bi-clipboard-x me-2"></i>Информация о задаче
+                            </h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <strong>Название:</strong>
+                                        <div class="mt-1">{{ task.title }}</div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <strong>Проект:</strong>
+                                        <div class="mt-1">
+                                            <a href="{% url 'main:project_detail' task.project.id %}" class="text-decoration-none">
+                                                <i class="bi bi-folder2 me-1"></i>{{ task.project.name }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <strong>Статус:</strong>
+                                        <div class="mt-1">
+                                            <span class="badge {% if task.status == 'done' %}bg-success{% elif task.status == 'in_progress' %}bg-warning{% elif task.status == 'review' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                {{ task.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <strong>Приоритет:</strong>
+                                        <div class="mt-1">
+                                            <span class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ task.get_priority_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <strong>Исполнитель:</strong>
+                                        <div class="mt-1">
+                                            {% if task.assigned_to %}
+                                                <i class="bi bi-person me-1"></i>{{ task.assigned_to.username }}
+                                            {% else %}
+                                                <span class="text-muted">Не назначен</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <strong>Создана:</strong>
+                                        <div class="mt-1">
+                                            {{ task.created_at|date:"d.m.Y H:i" }}
+                                            <br>
+                                            <small class="text-muted">{{ task.created_by.username }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Описание -->
+                            {% if task.description %}
+                            <div class="border-top pt-3">
+                                <strong>Описание:</strong>
+                                <div class="mt-2 p-3 bg-light rounded">
+                                    {{ task.description|linebreaks }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Срок выполнения -->
+                            {% if task.due_date %}
+                            <div class="border-top pt-3 mt-3">
+                                <strong>Срок выполнения:</strong>
+                                <div class="mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar-date me-2"></i>
+                                        <span class="{% if task.due_date < today %}text-danger fw-bold{% endif %}">
+                                            {{ task.due_date|date:"d.m.Y" }}
+                                            {% if task.due_date < today and task.status != 'done' %}
+                                                <span class="badge bg-danger ms-2">Просрочено</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Последствия удаления -->
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bi bi-info-circle me-2"></i>Что будет удалено:
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>Сама задача</li>
+                            <li>История изменений статуса</li>
+                            <li>Назначения и комментарии (если есть)</li>
+                            <li>Связи с другими задачами (если есть)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Форма подтверждения -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <!-- Кнопка отмены -->
+                            <a href="{% url 'main:project_detail' task.project.id %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-left me-1"></i>Отмена
+                            </a>
+                            
+                            <!-- Кнопка удаления -->
+                            <button type="submit" class="btn btn-danger px-4" id="deleteButton">
+                                <i class="bi bi-trash me-1"></i>Да, удалить задачу
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    text-decoration: none;
+    color: #4e73df;
+}
+
+.breadcrumb-item.active {
+    color: #dc3545;
+}
+
+.badge {
+    font-size: 0.8em;
+    padding: 0.35em 0.65em;
+}
+
+.btn-danger {
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.alert-secondary {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+.border-light {
+    border-color: #f8f9fa !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .d-md-flex {
+        flex-direction: column;
+    }
+    
+    .me-md-2 {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем дополнительное подтверждение
+    const deleteButton = document.getElementById('deleteButton');
+    const form = deleteButton.closest('form');
+    
+    // Предотвращаем двойную отправку
+    let isSubmitting = false;
+    
+    form.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Дополнительное подтверждение
+        if (!confirm('Вы точно хотите удалить эту задачу? Это действие необратимо.')) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Блокируем кнопку и показываем индикатор загрузки
+        isSubmitting = true;
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Удаление...
+        `;
+        
+        // Добавляем небольшую задержку для UX
+        setTimeout(() => {
+            deleteButton.innerHTML = `
+                <i class="bi bi-trash me-1"></i>Удалено!
+            `;
+        }, 1500);
+    });
+    
+    // Функция для снятия исполнителя
+    window.clearAssignee = function(button) {
+        if (confirm('Снять исполнителя с задачи?')) {
+            const form = button.closest('form');
+            form.submit();
+        }
+    };
+    
+    // Показываем текущую дату для сравнения с due_date
+    const today = new Date().toISOString().split('T')[0];
+    const todayElements = document.querySelectorAll('.today-placeholder');
+    todayElements.forEach(el => {
+        el.textContent = today;
+    });
+    
+    // Анимация для кнопок альтернативных действий
+    const altButtons = document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info');
+    altButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Плавная прокрутка к началу формы при загрузке
+    setTimeout(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, 100);
+});
+</script>
+{% endblock %}

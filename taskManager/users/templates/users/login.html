@@ -1,0 +1,79 @@
+<!-- templates/registration/login.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Вход - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Вход в систему
+                </h4>
+            </div>
+            
+            <div class="card-body p-4">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Неправильное имя пользователя или пароль.
+                    </div>
+                {% endif %}
+                
+                {% if next %}
+                    {% if user.is_authenticated %}
+                        <div class="alert alert-warning">
+                            У вашей учетной записи нет доступа к этой странице.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Пожалуйста, войдите для просмотра этой страницы.
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <form method="post" action="{% url 'users:login' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Имя пользователя -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" name="username" class="form-control" id="username" required autofocus>
+                    </div>
+                    
+                    <!-- Пароль -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" name="password" class="form-control" id="password" required>
+                    </div>
+                    
+                    <!-- Скрытое поле next -->
+                    <input type="hidden" name="next" value="{{ next }}">
+                    
+                    <!-- Кнопка входа -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <!-- Дополнительные ссылки -->
+                <div class="text-center">
+                    <p class="mb-2">
+                        <a href="{% url 'users:register' %}" class="text-decoration-none">
+                            <i class="bi bi-person-plus me-1"></i>Создать аккаунт
+                        </a>
+                    </p>
+                    <p class="mb-0 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

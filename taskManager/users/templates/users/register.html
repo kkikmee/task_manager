@@ -1,0 +1,84 @@
+<!-- templates/registration/register.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Регистрация - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center py-3">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-plus me-2"></i>Создание аккаунта
+                </h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Имя пользователя -->
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Имя пользователя *</label>
+                            <input type="text" name="username" class="form-control" id="username" required>
+                            <div class="form-text">Только буквы, цифры и @/./+/-/_</div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email адрес</label>
+                            <input type="email" name="email" class="form-control" id="email">
+                            <div class="form-text">Необязательно, но рекомендуется</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Пароль -->
+                        <div class="col-md-6 mb-3">
+                            <label for="password1" class="form-label">Пароль *</label>
+                            <input type="password" name="password1" class="form-control" id="password1" required>
+                            <div class="form-text">
+                                Минимум 8 символов. Не только цифры.
+                            </div>
+                        </div>
+                        
+                        <!-- Подтверждение пароля -->
+                        <div class="col-md-6 mb-3">
+                            <label for="password2" class="form-label">Подтверждение пароля *</label>
+                            <input type="password" name="password2" class="form-control" id="password2" required>
+                            <div class="form-text">Введите пароль еще раз</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Имя и фамилия -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">Имя</label>
+                            <input type="text" name="first_name" class="form-control" id="first_name">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Фамилия</label>
+                            <input type="text" name="last_name" class="form-control" id="last_name">
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-arrow-left me-1"></i>Назад к входу
+                        </a>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-lg me-1"></i>Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

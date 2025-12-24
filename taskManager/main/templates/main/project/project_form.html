@@ -1,0 +1,497 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Task Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Кастомные стили для формы */
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-left: 4px solid #4e73df;
+}
+
+.form-section h5 {
+    color: #4e73df;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.form-section h5 i {
+    margin-right: 10px;
+}
+
+.color-preview-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 15px;
+    transition: all 0.3s ease;
+}
+
+.color-preview-box:hover {
+    transform: scale(1.1);
+}
+
+.required-field::after {
+    content: " *";
+    color: #dc3545;
+}
+
+.form-actions {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-top: 2px solid #e3e6f0;
+}
+
+.form-tips {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.form-tips h6 {
+    color: white;
+    font-weight: 600;
+}
+
+.tip-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.tip-item i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+/* Стили для полей формы */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d3e2;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: #858796;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Стили для ошибок */
+.error-message {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #dc3545;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .form-section {
+        padding: 15px;
+    }
+    
+    .color-preview-box {
+        width: 40px;
+        height: 40px;
+        margin-left: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}" class="text-decoration-none">
+                        <i class="bi bi-house-door me-1"></i>Главная
+                    </a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:dashboard' %}" class="text-decoration-none">
+                            <i class="bi bi-folder me-1"></i>Проекты
+                        </a>
+                    </li>
+                    {% if project %}
+                        <li class="breadcrumb-item"><a href="{% url 'main:project_detail' project.id %}" class="text-decoration-none">
+                            {{ project.name|truncatechars:20 }}
+                        </a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+
+            <!-- Заголовок -->
+            <div class="d-flex align-items-center mb-4">
+                <div class="me-3">
+                    {% if project %}
+                        <div class="color-preview-box" id="currentColorPreview" style="background-color: {{ project.color }};"></div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h1 class="h3 mb-1">{{ title }}</h1>
+                    <p class="text-muted mb-0">
+                        {% if project %}
+                            Редактирование проекта "{{ project.name }}"
+                        {% else %}
+                            Создайте новый проект для управления задачами
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Основная форма -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <form method="post" novalidate id="projectForm">
+                        {% csrf_token %}
+                        
+                        <!-- Сообщения об ошибках формы -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+
+                        <!-- Секция 1: Основная информация -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-info-circle"></i>Основная информация</h5>
+                            
+                            <div class="row">
+                                <!-- Название проекта -->
+                                <div class="col-md-8 mb-4">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required-field">
+                                        Название проекта
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="error-message">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="help-text">
+                                        Укажите краткое и понятное название проекта (минимум 2 символа)
+                                    </div>
+                                </div>
+
+                                <!-- Цвет проекта -->
+                                <div class="col-md-4 mb-4">
+                                    <label for="{{ form.color.id_for_label }}" class="form-label">
+                                        Цвет проекта
+                                    </label>
+                                    <div class="d-flex align-items-center">
+                                        {{ form.color }}
+                                        <div class="color-preview-box ms-3" id="colorPreview" 
+                                             style="background-color: {{ form.color.value|default:'#4e73df' }}"></div>
+                                    </div>
+                                    {% if form.color.errors %}
+                                        <div class="error-message">
+                                            {% for error in form.color.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="help-text">
+                                        Выберите цвет для визуального выделения проекта
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Описание проекта -->
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    Описание проекта
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="error-message">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="help-text">
+                                    Опишите цели, задачи и особенности проекта. Максимум 500 символов.
+                                    <span id="charCount" class="float-end">0/500</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Секция 2: Статистика проекта (только для редактирования) -->
+                        {% if project %}
+                        <div class="form-section">
+                            <h5><i class="bi bi-graph-up"></i>Статистика проекта</h5>
+                            <div class="row text-center">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-primary bg-light">
+                                        <div class="card-body py-3">
+                                            <h3 class="text-primary mb-1">{{ total_tasks }}</h3>
+                                            <small class="text-muted">Всего задач</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-success bg-light">
+                                        <div class="card-body py-3">
+                                            <h3 class="text-success mb-1">{{ done_tasks }}</h3>
+                                            <small class="text-muted">Выполнено</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-warning bg-light">
+                                        <div class="card-body py-3">
+                                            <h3 class="text-warning mb-1">{{ team_members_count }}</h3>
+                                            <small class="text-muted">Участников</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-info bg-light">
+                                        <div class="card-body py-3">
+                                            <h3 class="text-info mb-1">{{ project.created_at|date:"d.m.Y" }}</h3>
+                                            <small class="text-muted">Дата создания</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Кнопки действия -->
+                        <div class="form-actions mt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% if project %}{% url 'main:project_detail' project.id %}{% else %}{% url 'main:project_list' %}{% endif %}" 
+                                       class="btn btn-outline-secondary px-4">
+                                        <i class="bi bi-arrow-left me-1"></i>Отмена
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    {% if project %}
+                                        <a href="{% url 'main:project_detail' project.id %}" class="btn btn-outline-info">
+                                            <i class="bi bi-eye me-1"></i>Просмотр
+                                        </a>
+                                        {% if project.created_by == user %}
+                                            <a href="{% url 'main:invite_to_project' project.id %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-person-plus me-1"></i>Пригласить
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="bi bi-check-lg me-1"></i>
+                                        {% if project %}Сохранить изменения{% else %}Создать проект{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Подсказки и советы -->
+            <div class="form-tips mt-4">
+                <h6 class="mb-3"><i class="bi bi-lightbulb"></i>Полезные советы</h6>
+                
+                <div class="tip-item">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>Название проекта</strong> должно быть понятным и отражать суть работы
+                </div>
+                
+                <div class="tip-item">
+                    <i class="bi bi-check-circle"></i>
+                    Используйте <strong>цвет проекта</strong> для быстрой визуальной идентификации
+                </div>
+                
+                <div class="tip-item">
+                    <i class="bi bi-check-circle"></i>
+                    Подробное <strong>описание</strong> поможет участникам понять цели проекта
+                </div>
+                
+                <div class="tip-item">
+                    <i class="bi bi-check-circle"></i>
+                    После создания проекта не забудьте <strong>пригласить участников</strong> и <strong>создать задачи</strong>
+                </div>
+                
+                {% if project %}
+                <div class="tip-item">
+                    <i class="bi bi-check-circle"></i>
+                    Изменение названия или цвета проекта сразу отобразится у всех участников
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация полей формы
+    const formControls = document.querySelectorAll('input, textarea, select');
+    formControls.forEach(control => {
+        if (!control.classList.contains('form-check-input') && 
+            !control.classList.contains('btn')) {
+            control.classList.add('form-control');
+        }
+    });
+
+    // Специальная обработка цветового поля
+    const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+    const colorPreview = document.getElementById('colorPreview');
+    const currentColorPreview = document.getElementById('currentColorPreview');
+    
+    if (colorInput && colorPreview) {
+        // Устанавливаем тип color
+        colorInput.type = 'color';
+        colorInput.classList.add('form-control-color');
+        
+        // Обновление preview при изменении
+        colorInput.addEventListener('input', function() {
+            colorPreview.style.backgroundColor = this.value;
+            if (currentColorPreview) {
+                currentColorPreview.style.backgroundColor = this.value;
+            }
+        });
+        
+        // Инициализация цвета
+        colorPreview.style.backgroundColor = colorInput.value || '#4e73df';
+    }
+
+    // Подсчет символов в описании
+    const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+    const charCount = document.getElementById('charCount');
+    
+    if (descriptionField && charCount) {
+        function updateCharCount() {
+            const length = descriptionField.value.length;
+            charCount.textContent = `${length}/500`;
+            
+            if (length > 500) {
+                charCount.classList.add('text-danger');
+            } else {
+                charCount.classList.remove('text-danger');
+            }
+        }
+        
+        descriptionField.addEventListener('input', updateCharCount);
+        updateCharCount(); // Инициализация
+    }
+
+    // Валидация формы перед отправкой
+    const projectForm = document.getElementById('projectForm');
+    if (projectForm) {
+        projectForm.addEventListener('submit', function(e) {
+            const nameField = document.getElementById('{{ form.name.id_for_label }}');
+            const nameValue = nameField ? nameField.value.trim() : '';
+            
+            if (!nameValue) {
+                e.preventDefault();
+                showToast('Ошибка', 'Пожалуйста, заполните название проекта', 'danger');
+                nameField.focus();
+                return false;
+            }
+            
+            if (nameValue.length < 2) {
+                e.preventDefault();
+                showToast('Ошибка', 'Название проекта должно содержать минимум 2 символа', 'danger');
+                nameField.focus();
+                return false;
+            }
+            
+            // Проверка описания
+            if (descriptionField && descriptionField.value.length > 500) {
+                e.preventDefault();
+                showToast('Ошибка', 'Описание не должно превышать 500 символов', 'danger');
+                descriptionField.focus();
+                return false;
+            }
+            
+            // Показываем индикатор загрузки
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Сохранение...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    // Функция для показа уведомлений
+    function showToast(title, message, type = 'info') {
+        // Создаем простое уведомление
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 350px;';
+        alert.innerHTML = `
+            <strong>${title}</strong><br>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        // Автоматическое удаление через 5 секунд
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.parentNode.removeChild(alert);
+            }
+        }, 5000);
+    }
+
+    // Добавляем плавную анимацию для всех секций
+    const sections = document.querySelectorAll('.form-section');
+    sections.forEach((section, index) => {
+        section.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
+{% endblock %}

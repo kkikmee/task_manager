@@ -1,0 +1,533 @@
+<!-- templates/tasks/my_tasks.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Мои задачи - Task Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок и фильтры -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-2">Мои задачи</h1>
+            <p class="text-muted">Задачи, назначенные на вас</p>
+        </div>
+        <div class="col-auto">
+            {% if projects %}
+                <a href="{% url 'main:task_create' projects.0.id %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Новая задача
+                </a>
+            {% endif %}
+            <a href="{% url 'main:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Всего задач
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_tasks }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-list-task fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                В работе
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ in_progress_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Просрочено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overdue_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Выполнено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ done_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Статус</label>
+                            <select class="form-select" onchange="window.location.href=this.value">
+                                <option value="?">Все статусы</option>
+                                <option value="?status=todo" {% if status_filter == 'todo' %}selected{% endif %}>К выполнению</option>
+                                <option value="?status=in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>В процессе</option>
+                                <option value="?status=review" {% if status_filter == 'review' %}selected{% endif %}>На проверке</option>
+                                <option value="?status=done" {% if status_filter == 'done' %}selected{% endif %}>Выполнено</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Сортировка</label>
+                            <select class="form-select" onchange="window.location.href=this.value">
+                                <option value="?">По умолчанию</option>
+                                <option value="?sort=due_date" {% if sort_by == 'due_date' %}selected{% endif %}>По сроку (ближайшие)</option>
+                                <option value="?sort=-due_date" {% if sort_by == '-due_date' %}selected{% endif %}>По сроку (дальние)</option>
+                                <option value="?sort=-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Новые сначала</option>
+                                <option value="?sort=created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Старые сначала</option>
+                                <option value="?sort=priority" {% if sort_by == 'priority' %}selected{% endif %}>По приоритету</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Быстрые действия</label>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-info btn-sm" onclick="markAllInProgressDone()">
+                                    <i class="bi bi-check-all"></i> Отметить все в работе как выполненные
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список задач -->
+    <div class="row">
+        <div class="col-lg-8">
+            {% if tasks_by_project %}
+                <!-- Задачи по проектам -->
+                <div class="accordion" id="tasksAccordion">
+                    {% for project_tasks in tasks_by_project %}
+                        <div class="accordion-item mb-3">
+                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" 
+                                        aria-controls="collapse{{ forloop.counter }}">
+                                    <div class="d-flex align-items-center w-100">
+                                        <div style="width: 16px; height: 16px; background-color: {{ project_tasks.project.color }}; 
+                                                   border-radius: 3px; margin-right: 12px;"></div>
+                                        <div class="flex-grow-1">
+                                            <strong>{{ project_tasks.project.name }}</strong>
+                                            <span class="badge bg-secondary ms-2">{{ project_tasks.tasks|length }}</span>
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            {{ project_tasks.stats.done }}/{{ project_tasks.stats.total }} выполнено
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#tasksAccordion">
+                                <div class="accordion-body p-0">
+                                    <div class="list-group list-group-flush">
+                                        {% for task in project_tasks.tasks %}
+                                            <div class="list-group-item px-3 py-3 task-item 
+                                                {% if task.due_date and task.due_date < today and task.status != 'done' %}bg-warning bg-opacity-10{% endif %}">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-8">
+                                                        <div class="d-flex align-items-start mb-2">
+                                                            <div class="form-check me-2">
+                                                                <input class="form-check-input task-checkbox" type="checkbox" 
+                                                                       data-task-id="{{ task.id }}" 
+                                                                       {% if task.status == 'done' %}checked{% endif %}>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-1">
+                                                                    <a href="{% url 'main:task_edit' task.id %}" class="text-decoration-none text-dark">
+                                                                        {{ task.title }}
+                                                                    </a>
+                                                                </h6>
+                                                                {% if task.description %}
+                                                                    <p class="text-muted small mb-2">{{ task.description|truncatewords:20 }}</p>
+                                                                {% endif %}
+                                                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                                    <span class="badge 
+                                                                        {% if task.priority == 'high' %}bg-danger
+                                                                        {% elif task.priority == 'medium' %}bg-warning
+                                                                        {% else %}bg-success{% endif %}">
+                                                                        {{ task.get_priority_display }}
+                                                                    </span>
+                                                                    <small class="text-muted">
+                                                                        <i class="bi bi-person"></i> Создатель: {{ task.created_by.username }}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-4">
+                                                        <div class="d-flex flex-column align-items-end">
+                                                            <!-- Статус -->
+                                                            <select class="form-select form-select-sm status-select mb-2" 
+                                                                    data-task-id="{{ task.id }}" style="width: auto;">
+                                                                <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>К выполнению</option>
+                                                                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В процессе</option>
+                                                                <option value="review" {% if task.status == 'review' %}selected{% endif %}>На проверке</option>
+                                                                <option value="done" {% if task.status == 'done' %}selected{% endif %}>Выполнено</option>
+                                                            </select>
+                                                            
+                                                            <!-- Срок выполнения -->
+                                                            {% if task.due_date %}
+                                                                <div class="mb-2">
+                                                                    <small class="{% if task.due_date < today and task.status != 'done' %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                                        <i class="bi bi-calendar"></i> {{ task.due_date }}
+                                                                        {% if task.due_date < today and task.status != 'done' %}
+                                                                            <i class="bi bi-exclamation-triangle ms-1"></i>
+                                                                        {% endif %}
+                                                                    </small>
+                                                                </div>
+                                                            {% endif %}
+                                                            
+                                                            <!-- Дата создания -->
+                                                            <small class="text-muted">
+                                                                Создана: {{ task.created_at|date:"d.m.Y" }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Состояние пустого списка -->
+                <div class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-emoji-smile display-1 text-muted mb-4"></i>
+                        <h3 class="text-muted mb-3">Нет назначенных задач</h3>
+                        <p class="text-muted mb-4">
+                            {% if status_filter %}
+                                Попробуйте изменить фильтр статуса
+                            {% else %}
+                                Вам пока не назначили ни одной задачи. Вы можете создать новую задачу или попросить коллег назначить вам задачи.
+                            {% endif %}
+                        </p>
+                        <div class="d-grid gap-2 d-md-block">
+                            {% if projects %}
+                                <a href="{% url 'main:task_create' projects.0.id %}" class="btn btn-primary btn-lg me-2">
+                                    <i class="bi bi-plus-circle"></i> Создать задачу
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'users:project_list' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-folder2-open"></i> Перейти к проектам
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Срочные задачи -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Срочные задачи
+                    </h6>
+                    <span class="badge bg-danger">{{ urgent_tasks_count }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if urgent_tasks %}
+                        <div class="list-group list-group-flush">
+                            {% for task in urgent_tasks %}
+                                <div class="list-group-item px-3 py-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'main:task_edit' task.id %}" class="text-decoration-none text-dark">
+                                                    {{ task.title|truncatewords:8 }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted">{{ task.project.name }}</small>
+                                        </div>
+                                        <span class="badge bg-danger">Высокий</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-danger">
+                                            <i class="bi bi-calendar"></i> {{ task.due_date }}
+                                            {% if task.due_date < today %}
+                                                <span class="badge bg-danger ms-1">Просрочено</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+                            <p class="text-muted">Нет срочных задач</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Статистика по приоритетам -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-bar-chart me-2"></i>Статистика по приоритетам
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-danger">Высокий приоритет</span>
+                            <span class="text-danger">{{ high_priority_count }}</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-danger" style="width: {% widthratio high_priority_count total_tasks 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-warning">Средний приоритет</span>
+                            <span class="text-warning">{{ medium_priority_count }}</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" style="width: {% widthratio medium_priority_count total_tasks 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-success">Низкий приоритет</span>
+                            <span class="text-success">{{ low_priority_count }}</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" style="width: {% widthratio low_priority_count total_tasks 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрые действия -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-lightning me-2"></i>Быстрые действия
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'main:dashboard' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-speedometer2"></i> Панель управления
+                        </a>
+                        <a href="{% url 'users:my_tasks' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-list-task"></i> Все задачи
+                        </a>
+                        <button class="btn btn-outline-success btn-sm" onclick="markAllTodoAsInProgress()">
+                            <i class="bi bi-play-circle"></i> Начать все "К выполнению"
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.task-item {
+    transition: background-color 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.task-item:hover {
+    background-color: #f8f9fa;
+}
+
+.task-item.bg-warning {
+    border-left-color: #ffc107;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: rgba(78, 115, 223, 0.05);
+    color: #4e73df;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.status-select {
+    width: 140px;
+    font-size: 0.875rem;
+}
+
+.border-left-primary { border-left-color: #4e73df !important; }
+.border-left-success { border-left-color: #1cc88a !important; }
+.border-left-warning { border-left-color: #f6c23e !important; }
+.border-left-danger { border-left-color: #e74a3b !important; }
+
+.empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.task-checkbox:checked {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+}
+
+.progress {
+    border-radius: 10px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // AJAX обновление статуса задачи
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.value;
+            
+            fetch(`/tasks/${taskId}/update-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Обновляем чекбокс если статус "Выполнено"
+                    const checkbox = document.querySelector(`.task-checkbox[data-task-id="${taskId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = newStatus === 'done';
+                    }
+                    
+                    // Обновляем статистику на странице (упрощенно)
+                    updateStats();
+                }
+            });
+        });
+    });
+
+    // Обработка чекбоксов задач
+    document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.checked ? 'done' : 'todo';
+            
+            // Обновляем селект статуса
+            const statusSelect = document.querySelector(`.status-select[data-task-id="${taskId}"]`);
+            if (statusSelect) {
+                statusSelect.value = newStatus;
+                statusSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Функция для отметки всех задач "В процессе" как выполненные
+    window.markAllInProgressDone = function() {
+        if (confirm('Отметить все задачи "В процессе" как выполненные?')) {
+            const inProgressTasks = document.querySelectorAll('.status-select[value="in_progress"]');
+            inProgressTasks.forEach(select => {
+                select.value = 'done';
+                select.dispatchEvent(new Event('change'));
+            });
+        }
+    };
+
+    // Функция для начала всех задач "К выполнению"
+    window.markAllTodoAsInProgress = function() {
+        if (confirm('Начать все задачи "К выполнению"?')) {
+            const todoTasks = document.querySelectorAll('.status-select[value="todo"]');
+            todoTasks.forEach(select => {
+                select.value = 'in_progress';
+                select.dispatchEvent(new Event('change'));
+            });
+        }
+    };
+
+    // Функция обновления статистики (упрощенная)
+    function updateStats() {
+        // Здесь можно добавить обновление счетчиков через AJAX
+        // Для простоты просто перезагружаем страницу через 1.5 секунды
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }
+
+    // Автоматическое раскрытие аккордеона с просроченными задачами
+    const overdueAccordion = document.querySelector('.accordion-item.bg-warning');
+    if (overdueAccordion) {
+        const collapseId = overdueAccordion.querySelector('.accordion-collapse').id;
+        const collapse = new bootstrap.Collapse(document.getElementById(collapseId));
+        collapse.show();
+    }
+
+    // Подсветка активного фильтра
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const sort = urlParams.get('sort');
+    
+    if (status || sort) {
+        // Можно добавить визуальное выделение
+        console.log('Активные фильтры:', { status, sort });
+    }
+});
+</script>
+{% endblock %}

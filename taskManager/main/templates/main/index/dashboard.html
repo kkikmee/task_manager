@@ -1,0 +1,360 @@
+<!-- templates/tasks/dashboard.html -->
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Панель управления - Task Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок и приветствие -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-2">Добро пожаловать, {{ user.username }}! 👋</h1>
+            <p class="text-muted">Обзор ваших проектов и задач</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'main:project_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Новый проект
+            </a>
+        </div>
+    </div>
+
+    <!-- Статистика в карточках -->
+    <div class="row mb-4">
+        <!-- Всего проектов -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Проектов
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ projects.count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-folder2-open fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Всего задач -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Всего задач
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Активные задачи -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Активные
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_active }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Выполненные задачи -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Выполнено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_done }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мои задачи -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Назначено на меня
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ my_tasks_count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Просроченные -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Просрочено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ overdue_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Список проектов -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Мои проекты</h6>
+                    <a href="{% url 'users:project_list' %}" class="btn btn-sm btn-outline-primary">
+                        Все проекты
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if projects %}
+                        <div class="row">
+                            {% for project in projects %}
+                                <div class="col-lg-6 mb-3">
+                                    <a href="{% url 'main:project_detail' project.id %}" class="text-decoration-none">
+                                        <div class="card project-card h-100 clickable-card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h5 class="card-title mb-0 text-dark">
+                                                        {{ project.name }}
+                                                    </h5>
+                                                    <div style="width: 20px; height: 20px; background-color: {{ project.color }}; border-radius: 3px; border: 1px solid #ddd;"></div>
+                                                </div>
+                                                
+                                                <p class="card-text text-muted small mb-3">
+                                                    {{ project.description|truncatewords:20|default:"Описание отсутствует" }}
+                                                </p>
+                                                
+                                                <!-- Прогресс по задачам -->
+                                                {% for stats in projects_stats %}
+                                                    {% if stats.project.id == project.id %}
+                                                        <div class="project-stats">
+                                                            {% if stats.total > 0 %}
+                                                                <div class="progress mb-2" style="height: 10px;">
+                                                                    {% widthratio stats.done stats.total 100 as done_percent %}
+                                                                    {% widthratio stats.in_progress stats.total 100 as progress_percent %}
+                                                                    <div class="progress-bar bg-success" style="width: {{ done_percent }}%" title="Выполнено: {{ stats.done }}"></div>
+                                                                    <div class="progress-bar bg-warning" style="width: {{ progress_percent }}%" title="В работе: {{ stats.in_progress }}"></div>
+                                                                    <div class="progress-bar bg-secondary" style="width: calc(100% - {{ done_percent }}% - {{ progress_percent }}%)" title="К выполнению: {{ stats.todo }}"></div>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between text-xs text-muted mb-2">
+                                                                    <span><small>Всего: {{ stats.total }}</small></span>
+                                                                    <span><small>Выполнено: {{ stats.done }}</small></span>
+                                                                    <span><small>Активные: {{ stats.in_progress|add:stats.todo }}</small></span>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="progress mb-2" style="height: 10px;">
+                                                                    <div class="progress-bar bg-light" style="width: 100%"></div>
+                                                                </div>
+                                                                <div class="text-center text-muted small mb-2">
+                                                                    Задач пока нет
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                
+                                                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-person"></i> {{ project.created_by.username }}
+                                                    </small>
+                                                    <div>
+                                                        <span class="badge bg-light text-dark me-1">
+                                                            <i class="bi bi-people"></i> {{ project.team_members.count }}
+                                                        </span>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="bi bi-list-task"></i> {{ project.tasks.count }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-folder-x display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Проектов пока нет</h5>
+                            <p class="text-muted mb-4">Создайте свой первый проект чтобы начать работу</p>
+                            <a href="{% url 'main:project_create' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-plus-circle"></i> Создать проект
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Последние задачи -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Последние задачи</h6>
+                    <a href="{% url 'users:my_tasks' %}" class="btn btn-sm btn-outline-primary">
+                        Мои задачи
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_tasks %}
+                        <div class="list-group list-group-flush">
+                            {% for task in recent_tasks %}
+                                <div class="list-group-item px-3 py-2">
+                                    <div class="d-flex w-100 justify-content-between align-items-start mb-1">
+                                        <h6 class="mb-0 task-title">
+                                            <a href="{% url 'main:project_detail' task.project.id %}" class="text-decoration-none text-dark">
+                                                {{ task.title|truncatewords:8 }}
+                                            </a>
+                                        </h6>
+                                        <span class="badge {% if task.status == 'done' %}bg-success{% elif task.status == 'in_progress' %}bg-warning{% elif task.status == 'review' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-folder"></i> {{ task.project.name }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            {% if task.assigned_to %}
+                                                <i class="bi bi-person"></i> {{ task.assigned_to.username }}
+                                            {% else %}
+                                                <i class="bi bi-exclamation-circle"></i> Не назначена
+                                            {% endif %}
+                                        </small>
+                                        <small class="text-muted">
+                                            {{ task.created_at|date:"d.m.Y" }}
+                                        </small>
+                                    </div>
+                                    
+                                    {% if task.due_date %}
+                                        <div class="mt-1">
+                                            <small class="{% if task.due_date < today %}text-danger{% else %}text-muted{% endif %}">
+                                                <i class="bi bi-calendar"></i> {{ task.due_date }}
+                                                {% if task.due_date < today %} ⚠️ Просрочено{% endif %}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if task.priority == 'high' %}
+                                        <div class="mt-1">
+                                            <small class="text-danger">
+                                                <i class="bi bi-exclamation-triangle"></i> Высокий приоритет
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x display-1 text-muted mb-3"></i>
+                            <p class="text-muted">Задач пока нет</p>
+                            {% if projects %}
+                                <a href="{% url 'main:task_create' projects.0.id %}" class="btn btn-sm btn-outline-primary">
+                                    Создать первую задачу
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Топ проекты -->
+            {% if top_projects %}
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Самые активные проекты</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for project in top_projects %}
+                            <div class="list-group-item px-0 py-2 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 small">
+                                            <a href="{% url 'main:project_detail' project.id %}" class="text-decoration-none">
+                                                {{ project.name }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">{{ project.task_count }} задач</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ project.task_count }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+// Добавляем текущую дату для сравнения с due_date
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayElements = document.querySelectorAll('.today-placeholder');
+    todayElements.forEach(el => {
+        el.textContent = today;
+    });
+});
+</script>
+{% endblock %}
