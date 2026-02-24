@@ -358,28 +358,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Быстрые действия -->
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-lightning me-2"></i>Быстрые действия
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'main:dashboard' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-speedometer2"></i> Панель управления
-                        </a>
-                        <a href="{% url 'users:my_tasks' %}" class="btn btn-outline-info btn-sm">
-                            <i class="bi bi-list-task"></i> Все задачи
-                        </a>
-                        <button class="btn btn-outline-success btn-sm" onclick="markAllTodoAsInProgress()">
-                            <i class="bi bi-play-circle"></i> Начать все "К выполнению"
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
