@@ -8,6 +8,7 @@ from django.db.models import Count, Q, Max
 from django.db import models
 from main.models import Project, Task
 from django.utils import timezone
+from .forms import RegisterForm
 
 def login_view(request):
     """
@@ -33,19 +34,14 @@ def login_view(request):
 
 @login_required
 def logout_view(request):
-    """
-    Выход пользователя.
-    """
     logout(request)
     messages.success(request, 'Вы успешно вышли из системы')
     return redirect('users:login')
 
+
 def register_view(request):
-    """
-    Страница регистрации пользователя.
-    """
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             
@@ -54,7 +50,7 @@ def register_view(request):
             messages.success(request, f'Добро пожаловать, {user.username}!')
             return redirect('main:dashboard')
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
     
     return render(request, 'users/register.html', {'form': form})
 
@@ -120,7 +116,7 @@ def project_list(request):
     }
     return render(request, 'users/profile_projects.html', context)
 
-# views.py
+
 # views.py
 @login_required
 def my_tasks(request):
