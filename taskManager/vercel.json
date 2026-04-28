@@ -1,4 +1,3 @@
 {
-  "buildCommand": "cd taskManager && python manage.py collectstatic --no-input && python manage.py migrate",
-  "startCommand": "cd taskManager && gunicorn taskManager.wsgi:application"
+  "buildCommand": "python manage.py collectstatic --no-input && python manage.py migrate"
 }
