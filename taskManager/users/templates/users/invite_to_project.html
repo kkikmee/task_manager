@@ -1,0 +1,111 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Пригласить в проект — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}">Главная</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'main:project_detail' project.id %}">{{ project.name }}</a></li>
+          <li class="breadcrumb-item active">Пригласить</li>
+        </ol>
+      </nav>
+
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="mb-0">
+            <i class="bi bi-person-plus me-2"></i>Пригласить в «{{ project.name }}»
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          {% if available_colleagues %}
+            <p class="text-muted mb-4">Выберите коллегу для добавления в проект:</p>
+            <form method="post">
+              {% csrf_token %}
+              <div class="mb-4">
+                {% for colleague in available_colleagues %}
+                  <div class="border rounded p-3 mb-2 d-flex align-items-center gap-3 colleague-row"
+                       data-user-id="{{ colleague.id }}">
+                    <input type="radio" name="user_id" value="{{ colleague.id }}"
+                           class="form-check-input flex-shrink-0" id="user_{{ colleague.id }}"
+                           style="width:20px;height:20px;">
+                    <label for="user_{{ colleague.id }}" class="d-flex align-items-center gap-3 flex-grow-1 cursor-pointer mb-0">
+                      {% if colleague.avatar %}
+                        <img src="{{ colleague.avatar.url }}" alt=""
+                             class="rounded-circle flex-shrink-0"
+                             style="width:40px;height:40px;object-fit:cover;">
+                      {% else %}
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:40px;height:40px;font-size:1rem;">
+                          {{ colleague.username|first|upper }}
+                        </div>
+                      {% endif %}
+                      <div>
+                        <div class="fw-semibold">{{ colleague.get_full_name|default:colleague.username }}</div>
+                        <div class="text-muted small">@{{ colleague.username }}</div>
+                      </div>
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Роль -->
+              <div class="mb-4">
+                <label class="form-label fw-bold">Роль в проекте</label>
+                <select name="role" class="form-select">
+                  {% for value, label in role_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <a href="{% url 'main:project_detail' project.id %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left me-1"></i>Отмена
+                </a>
+                <button type="submit" class="btn btn-primary px-4">
+                  <i class="bi bi-check-lg me-1"></i>Добавить участника
+                </button>
+              </div>
+            </form>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="bi bi-people display-1 text-muted mb-3"></i>
+              <h5 class="text-muted">Нет доступных коллег</h5>
+              <p class="text-muted mb-4">
+                Все ваши коллеги уже в проекте, или у вас пока нет коллег.
+              </p>
+              <a href="{% url 'users:search_users' %}" class="btn btn-primary me-2">
+                <i class="bi bi-search me-1"></i>Найти коллег
+              </a>
+              <a href="{% url 'main:project_detail' project.id %}" class="btn btn-outline-secondary">
+                Назад к проекту
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+.colleague-row { transition: background .15s, border-color .15s; cursor: pointer; }
+.colleague-row:hover { background: #f0f4ff; border-color: #4e73df !important; }
+.colleague-row:has(input:checked) { background: #e8eeff; border-color: #4e73df !important; }
+</style>
+
+<script>
+document.querySelectorAll('.colleague-row').forEach(row => {
+  row.addEventListener('click', function() {
+    const radio = this.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+  });
+});
+</script>
+{% endblock %}

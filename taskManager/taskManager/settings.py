@@ -5,18 +5,48 @@ Django settings for taskManager project.
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
+
+# Загружаем .env файл (только локально, на сервере переменные задаются через окружение)
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- БЕЗОПАСНОСТЬ ---
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-*4!p0$wq9_-!1e@stg^hv_(#yqcbmr8_(8*-4-t27zq-hfbpu^')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+# ==============================================================
+# БЕЗОПАСНОСТЬ
+# ==============================================================
 
-# --- CSRF для Railway ---
-CSRF_TRUSTED_ORIGINS = [
-    f"https://{host}" for host in os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
-]
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY не задан! Добавьте его в .env или переменные окружения.")
+
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# Парсим ALLOWED_HOSTS из переменной окружения
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
+
+# В режиме разработки добавляем стандартные локальные хосты
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '[::1]']
+
+# Убираем дубликаты
+ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
+
+# ==============================================================
+# CSRF
+# ==============================================================
+
+CSRF_TRUSTED_ORIGINS = []
+
+# Railway / любой HTTPS-хост
+for host in ALLOWED_HOSTS:
+    if host not in ('localhost', '127.0.0.1', '[::1]'):
+        CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
+
+# ==============================================================
+# ПРИЛОЖЕНИЯ
+# ==============================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -31,7 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # <- сразу после Security
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,13 +89,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'taskManager.wsgi.application'
 
-# --- БАЗА ДАННЫХ ---
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',  # локалка
-        conn_max_age=600,
-    )
-}
+# ==============================================================
+# БАЗА ДАННЫХ
+# ==============================================================
+
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+
+if DATABASE_URL:
+    # PostgreSQL на Railway или своём сервере
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # SQLite для локальной разработки
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# ==============================================================
+# ВАЛИДАЦИЯ ПАРОЛЕЙ
+# ==============================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -74,19 +124,38 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ==============================================================
+# ЛОКАЛИЗАЦИЯ
+# ==============================================================
+
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# --- СТАТИКА ---
+# ==============================================================
+# СТАТИЧЕСКИЕ ФАЙЛЫ
+# ==============================================================
+
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- МЕДИА ---
+# WhiteNoise — сжатие и кэширование статики
+if DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ==============================================================
+# МЕДИАФАЙЛЫ
+# ==============================================================
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ==============================================================
+# ПРОЧЕЕ
+# ==============================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -94,3 +163,17 @@ AUTH_USER_MODEL = 'users.User'
 
 LOGIN_URL = 'user/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# ==============================================================
+# БЕЗОПАСНОСТЬ В ПРОДАКШЕНЕ (автоматически включается при DEBUG=False)
+# ==============================================================
+
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

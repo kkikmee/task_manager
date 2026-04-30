@@ -28,7 +28,7 @@
                     <a href="{% url 'main:project_edit' project.id %}" class="btn btn-outline-secondary">
                         <i class="bi bi-pencil"></i> Редактировать
                     </a>
-                    <a href="{% url 'main:invite_to_project' project.id %}" class="btn btn-outline-info">
+                    <a href="{% url 'users:invite_to_project' project.id %}" class="btn btn-outline-info">
                         <i class="bi bi-person-plus"></i> Пригласить
                     </a>
                 {% endif %}
@@ -291,20 +291,20 @@
                                         <small class="text-muted">{{ membership.get_role_display }}</small>
                                     </div>
                                 </div>
-                                {% if project.created_by == user %}
+                                {% comment %} {% if project.created_by == user %}
                                     <a href="{% url 'main:remove_from_project' project.id membership.user.id %}" 
                                        class="btn btn-sm btn-outline-danger"
                                        onclick="return confirm('Удалить {{ membership.user.username }} из проекта?')">
                                         <i class="bi bi-x"></i>
                                     </a>
-                                {% endif %}
+                                {% endif %} {% endcomment %}
                             </div>
                         {% endfor %}
                     </div>
                     
                     {% if project.created_by == user and available_assignees %}
                         <div class="mt-3">
-                            <a href="{% url 'main:invite_to_project' project.id %}" class="btn btn-outline-primary btn-sm w-100">
+                            <a href="{% url 'users:invite_to_project' project.id %}" class="btn btn-outline-primary btn-sm w-100">
                                 <i class="bi bi-person-plus"></i> Пригласить участника
                             </a>
                         </div>

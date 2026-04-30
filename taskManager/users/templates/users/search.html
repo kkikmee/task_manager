@@ -1,0 +1,114 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Поиск пользователей — Task Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="mb-1">Поиск пользователей</h2>
+      <p class="text-muted mb-0">Найдите коллег по имени пользователя</p>
+    </div>
+  </div>
+
+  <!-- Поисковая форма -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <form method="get" action="{% url 'users:search_users' %}">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input type="text" name="q" value="{{ query }}"
+                 class="form-control border-start-0 ps-0"
+                 placeholder="Введите имя пользователя или имя..."
+                 autofocus>
+          <button type="submit" class="btn btn-primary px-4">Найти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Результаты -->
+  {% if query %}
+    {% if results %}
+      <p class="text-muted mb-3 small">Найдено: {{ results|length }} пользователей</p>
+      <div class="row g-3">
+        {% for item in results %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3 p-3">
+                <!-- Аватар -->
+                <a href="{% url 'users:profile' item.user.username %}" class="flex-shrink-0">
+                  {% if item.user.avatar %}
+                    <img src="{{ item.user.avatar.url }}" alt=""
+                         class="rounded-circle"
+                         style="width:52px;height:52px;object-fit:cover;border:2px solid #dee2e6;">
+                  {% else %}
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                         style="width:52px;height:52px;font-size:1.3rem;">
+                      {{ item.user.username|first|upper }}
+                    </div>
+                  {% endif %}
+                </a>
+
+                <!-- Инфо -->
+                <div class="flex-grow-1 min-w-0">
+                  <a href="{% url 'users:profile' item.user.username %}" class="text-decoration-none">
+                    <div class="fw-semibold text-dark text-truncate">
+                      {{ item.user.get_full_name|default:item.user.username }}
+                    </div>
+                    <div class="text-muted small">@{{ item.user.username }}</div>
+                  </a>
+                  {% if item.user.bio %}
+                    <p class="text-muted small mb-0 mt-1">{{ item.user.bio|truncatewords:10 }}</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Действие -->
+              <div class="card-footer bg-transparent border-top p-2">
+                {% if item.is_colleague %}
+                  <span class="badge bg-success w-100 py-2">
+                    <i class="bi bi-people-fill me-1"></i>Уже коллеги
+                  </span>
+                {% elif item.pending_received %}
+                  <div class="d-grid gap-1">
+                    <a href="{% url 'users:accept_colleague_request' item.pending_received.id %}"
+                       class="btn btn-success btn-sm">
+                      <i class="bi bi-check-lg me-1"></i>Принять запрос
+                    </a>
+                  </div>
+                {% elif item.pending_sent %}
+                  <button class="btn btn-secondary btn-sm w-100" disabled>
+                    <i class="bi bi-clock me-1"></i>Запрос отправлен
+                  </button>
+                {% else %}
+                  <form method="post" action="{% url 'users:send_colleague_request' item.user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                      <i class="bi bi-person-plus me-1"></i>Добавить в коллеги
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-emoji-frown display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">Пользователи не найдены</h5>
+        <p class="text-muted">Попробуйте другой запрос</p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-search display-1 mb-3"></i>
+      <p>Введите имя пользователя для поиска</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

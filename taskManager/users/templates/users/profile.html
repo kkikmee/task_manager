@@ -1,0 +1,168 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }} — Task Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- LEFT: Аватар + кнопки -->
+    <div class="col-lg-3">
+      <div class="card shadow-sm text-center p-4">
+        {% if profile_user.avatar %}
+          <img src="{{ profile_user.avatar.url }}" alt="avatar"
+               class="rounded-circle mx-auto mb-3"
+               style="width:110px;height:110px;object-fit:cover;border:3px solid #dee2e6;">
+        {% else %}
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+               style="width:110px;height:110px;font-size:2.5rem;">
+            {{ profile_user.username|first|upper }}
+          </div>
+        {% endif %}
+
+        <h5 class="mb-0 fw-bold">{{ profile_user.get_full_name|default:profile_user.username }}</h5>
+        <p class="text-muted small mb-3">@{{ profile_user.username }}</p>
+
+        {% if is_own_profile %}
+          <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+            <i class="bi bi-pencil me-1"></i>Редактировать профиль
+          </a>
+        {% elif is_colleague %}
+          <span class="badge bg-success w-100 py-2 mb-2">
+            <i class="bi bi-people-fill me-1"></i>Коллега
+          </span>
+          <form method="post" action="{% url 'users:remove_colleague' profile_user.id %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm w-100"
+                    onclick="return confirm('Удалить из коллег?')">
+              <i class="bi bi-person-x me-1"></i>Убрать из коллег
+            </button>
+          </form>
+        {% elif pending_received %}
+          <div class="d-grid gap-2">
+            <a href="{% url 'users:accept_colleague_request' pending_received.id %}"
+               class="btn btn-success btn-sm">
+              <i class="bi bi-check-lg me-1"></i>Принять запрос
+            </a>
+            <a href="{% url 'users:reject_colleague_request' pending_received.id %}"
+               class="btn btn-outline-secondary btn-sm">Отклонить</a>
+          </div>
+        {% elif pending_sent %}
+          <button class="btn btn-secondary btn-sm w-100" disabled>
+            <i class="bi bi-clock me-1"></i>Запрос отправлен
+          </button>
+        {% else %}
+          <form method="post" action="{% url 'users:send_colleague_request' profile_user.id %}">
+            {% csrf_token %}
+            <button class="btn btn-primary btn-sm w-100">
+              <i class="bi bi-person-plus me-1"></i>Добавить в коллеги
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <!-- Статистика -->
+      <div class="card shadow-sm mt-3 p-3">
+        <h6 class="fw-bold mb-3 text-muted text-uppercase small">Статистика</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted small">Задач всего</span>
+          <span class="fw-bold">{{ task_stats.total|default:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted small">Выполнено</span>
+          <span class="fw-bold text-success">{{ task_stats.done|default:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted small">В работе</span>
+          <span class="fw-bold text-warning">{{ task_stats.in_progress|default:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted small">Коллег</span>
+          <span class="fw-bold text-primary">{{ colleagues_count }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Основной контент -->
+    <div class="col-lg-9">
+
+      <!-- Биография -->
+      {% if profile_user.bio %}
+      <div class="card shadow-sm mb-4 p-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-person-lines-fill me-2 text-primary"></i>О себе</h6>
+        <p class="mb-0 text-muted">{{ profile_user.bio }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Коллеги -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="bi bi-people me-2 text-primary"></i>Коллеги</span>
+          <span class="badge bg-primary">{{ colleagues_count }}</span>
+        </div>
+        <div class="card-body">
+          {% if colleagues %}
+            <div class="row g-2">
+              {% for colleague in colleagues %}
+                <div class="col-6 col-md-3">
+                  <a href="{% url 'users:profile' colleague.username %}" class="text-decoration-none">
+                    <div class="d-flex align-items-center gap-2 p-2 rounded border hover-bg">
+                      {% if colleague.avatar %}
+                        <img src="{{ colleague.avatar.url }}" alt=""
+                             class="rounded-circle" style="width:36px;height:36px;object-fit:cover;">
+                      {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:36px;height:36px;font-size:.9rem;">
+                          {{ colleague.username|first|upper }}
+                        </div>
+                      {% endif %}
+                      <span class="small text-dark fw-semibold text-truncate">{{ colleague.username }}</span>
+                    </div>
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 small">Коллег пока нет.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Проекты -->
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="bi bi-folder2-open me-2 text-primary"></i>Проекты</span>
+        </div>
+        <div class="card-body">
+          {% if user_projects %}
+            <div class="row g-3">
+              {% for project in user_projects %}
+                <div class="col-md-6">
+                  <a href="{% url 'main:project_detail' project.id %}" class="text-decoration-none">
+                    <div class="border rounded p-3 h-100 hover-bg">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <div style="width:14px;height:14px;background:{{ project.color }};border-radius:3px;flex-shrink:0;"></div>
+                        <span class="fw-semibold text-dark text-truncate">{{ project.name }}</span>
+                      </div>
+                      <p class="text-muted small mb-0">{{ project.description|truncatewords:12|default:"Без описания" }}</p>
+                    </div>
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 small">Нет доступных проектов.</p>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-bg { transition: background .15s; }
+.hover-bg:hover { background: #f0f4ff; border-color: #4e73df !important; }
+</style>
+{% endblock %}

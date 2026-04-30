@@ -361,49 +361,49 @@ def update_task_status(request, task_id):
     # Если что-то пошло не так, возвращаем ошибку
     return JsonResponse({'success': False, 'error': 'Не удалось обновить статус'})
 
-@login_required
-def invite_to_project(request, project_id):
-    """
-    Приглашение нового участника в проект.
-    Доступно только создателю и участникам с правами приглашения.
-    """
-    # Получаем проект
-    project = get_object_or_404(Project, id=project_id)
+# @login_required
+# def invite_to_project(request, project_id):
+#     """
+#     Приглашение нового участника в проект.
+#     Доступно только создателю и участникам с правами приглашения.
+#     """
+#     # Получаем проект
+#     project = get_object_or_404(Project, id=project_id)
     
-    # Проверяем права на приглашение
-    if project.created_by != request.user and not project.projectmembership_set.filter(
-        user=request.user, can_invite_users=True
-    ).exists():
-        raise PermissionDenied("У вас нет прав для приглашения участников")
+#     # Проверяем права на приглашение
+#     if project.created_by != request.user and not project.projectmembership_set.filter(
+#         user=request.user, can_invite_users=True
+#     ).exists():
+#         raise PermissionDenied("У вас нет прав для приглашения участников")
     
-    if request.method == 'POST':
-        # Обрабатываем форму приглашения
-        form = ProjectInviteForm(request.POST)
-        if form.is_valid():
-            user = form.cleaned_data['user']
-            role = form.cleaned_data['role']
+#     if request.method == 'POST':
+#         # Обрабатываем форму приглашения
+#         form = ProjectInviteForm(request.POST)
+#         if form.is_valid():
+#             user = form.cleaned_data['user']
+#             role = form.cleaned_data['role']
             
-            # Проверяем, не является ли пользователь уже участником
-            if project.team_members.filter(id=user.id).exists():
-                messages.error(request, f'Пользователь {user.username} уже в проекте!')
-            else:
-                # Создаем членство в проекте
-                ProjectMembership.objects.create(
-                    project=project,
-                    user=user,
-                    role=role
-                )
-                messages.success(request, f'Пользователь {user.username} приглашен в проект!')
-                return redirect('project_detail', project_id=project.id)
-    else:
-        # GET запрос - показываем пустую форму
-        form = ProjectInviteForm()
+#             # Проверяем, не является ли пользователь уже участником
+#             if project.team_members.filter(id=user.id).exists():
+#                 messages.error(request, f'Пользователь {user.username} уже в проекте!')
+#             else:
+#                 # Создаем членство в проекте
+#                 ProjectMembership.objects.create(
+#                     project=project,
+#                     user=user,
+#                     role=role
+#                 )
+#                 messages.success(request, f'Пользователь {user.username} приглашен в проект!')
+#                 return redirect('project_detail', project_id=project.id)
+#     else:
+#         # GET запрос - показываем пустую форму
+#         form = ProjectInviteForm()
     
-    return render(request, 'tasks/invite_form.html', {
-        'form': form, 
-        'project': project,
-        'title': 'Пригласить в проект'
-    })
+#     return render(request, 'tasks/invite_form.html', {
+#         'form': form, 
+#         'project': project,
+#         'title': 'Пригласить в проект'
+#     })
 
 @login_required
 def remove_from_project(request, project_id, user_id):
