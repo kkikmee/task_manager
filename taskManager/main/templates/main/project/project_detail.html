@@ -291,13 +291,13 @@
                                         <small class="text-muted">{{ membership.get_role_display }}</small>
                                     </div>
                                 </div>
-                                {% comment %} {% if project.created_by == user %}
+                                {% if project.created_by == user %}
                                     <a href="{% url 'main:remove_from_project' project.id membership.user.id %}" 
                                        class="btn btn-sm btn-outline-danger"
                                        onclick="return confirm('Удалить {{ membership.user.username }} из проекта?')">
                                         <i class="bi bi-x"></i>
                                     </a>
-                                {% endif %} {% endcomment %}
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>

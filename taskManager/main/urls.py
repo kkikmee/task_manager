@@ -14,7 +14,7 @@ urlpatterns = [
         
         # 👥 Управление участниками проектов
         # path('projects/<int:project_id>/invite/', views.invite_to_project, name='invite_to_project'),  # Приглашение в проект
-        # path('projects/<int:project_id>/remove-member/<int:user_id>/', views.remove_from_project, name='remove_from_project'),  # Удаление участника
+        path('projects/<int:project_id>/remove-member/<int:user_id>/', views.remove_from_project, name='remove_from_project'),
         
         # ✅ URLs для задач
         path('projects/<int:project_id>/tasks/create/', views.task_create, name='task_create'),  # Создание задачи

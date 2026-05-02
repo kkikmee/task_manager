@@ -1,0 +1,88 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Удалить участника — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'main:dashboard' %}">Главная</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'main:project_detail' project.id %}">{{ project.name }}</a></li>
+          <li class="breadcrumb-item active">Удалить участника</li>
+        </ol>
+      </nav>
+
+      <div class="card border-danger shadow">
+        <div class="card-header bg-danger text-white py-3">
+          <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-person-x-fill fs-3"></i>
+            <div>
+              <h5 class="mb-0">Удалить участника из проекта</h5>
+              <small class="opacity-75">Это действие можно отменить, пригласив заново</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Информация об участнике -->
+          <div class="d-flex align-items-center gap-3 p-3 border rounded mb-4">
+            {% if user_to_remove.avatar %}
+              <img src="{{ user_to_remove.avatar.url }}" alt=""
+                   class="rounded-circle flex-shrink-0"
+                   style="width:56px;height:56px;object-fit:cover;">
+            {% else %}
+              <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                   style="width:56px;height:56px;font-size:1.4rem;">
+                {{ user_to_remove.username|first|upper }}
+              </div>
+            {% endif %}
+            <div>
+              <div class="fw-bold fs-5">
+                {{ user_to_remove.get_full_name|default:user_to_remove.username }}
+              </div>
+              <div class="text-muted">@{{ user_to_remove.username }}</div>
+              {% if membership %}
+                <span class="badge bg-secondary mt-1">{{ membership.get_role_display }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Проект -->
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Пользователь <strong>{{ user_to_remove.username }}</strong> будет удалён из проекта
+            <strong>«{{ project.name }}»</strong>. Его задачи останутся, но исполнитель будет снят.
+          </div>
+
+          <!-- Задачи участника в проекте -->
+          {% if user_tasks_count %}
+            <div class="alert alert-secondary">
+              <i class="bi bi-list-task me-2"></i>
+              У участника <strong>{{ user_tasks_count }}</strong>
+              назначенн{{ user_tasks_count|pluralize:"ая,ых,ых" }} задач{{ user_tasks_count|pluralize:"а,и," }} в этом проекте.
+              После удаления они останутся без исполнителя.
+            </div>
+          {% endif %}
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'main:project_detail' project.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Отмена
+              </a>
+              <button type="submit" class="btn btn-danger px-4">
+                <i class="bi bi-person-x me-1"></i>Да, удалить из проекта
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

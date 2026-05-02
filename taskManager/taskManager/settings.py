@@ -23,8 +23,7 @@ if not SECRET_KEY:
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Парсим ALLOWED_HOSTS из переменной окружения
-_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 # В режиме разработки добавляем стандартные локальные хосты
 if DEBUG:

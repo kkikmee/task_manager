@@ -411,24 +411,31 @@ def remove_from_project(request, project_id, user_id):
     Удаление участника из проекта.
     Доступно только создателю проекта.
     """
-    # Получаем проект
     project = get_object_or_404(Project, id=project_id)
-    
-    # Проверяем, что пользователь - создатель проекта
+
     if project.created_by != request.user:
         raise PermissionDenied("Только создатель может удалять участников")
-    
-    # Получаем пользователя для удаления
+
     user_to_remove = get_object_or_404(project.team_members, id=user_id)
-    
+    membership = project.projectmembership_set.filter(user=user_to_remove).first()
+    user_tasks_count = project.tasks.filter(assigned_to=user_to_remove).count()
+
     if request.method == 'POST':
-        # Удаляем членство в проекте
+        # Снимаем участника с его задач
+        project.tasks.filter(assigned_to=user_to_remove).update(assigned_to=None)
+        # Удаляем из проекта
         ProjectMembership.objects.filter(project=project, user=user_to_remove).delete()
-        messages.success(request, f'Пользователь {user_to_remove.username} удален из проекта!')
-        return redirect('project_detail', project_id=project.id)
-    
-    # GET запрос - показываем страницу подтверждения
-    return render(request, 'tasks/remove_member_confirm.html', {
+
+        if user_tasks_count:
+            messages.success(request, f'Пользователь {user_to_remove.username} удалён. Его {user_tasks_count} задач теперь без исполнителя.')
+        else:
+            messages.success(request, f'Пользователь {user_to_remove.username} удалён из проекта.')
+        return redirect('main:project_detail', project_id=project.id)
+
+    context = {
         'project': project,
-        'user_to_remove': user_to_remove
-    })
+        'user_to_remove': user_to_remove,
+        'membership': membership,
+        'user_tasks_count': user_tasks_count,
+    }
+    return render(request, 'main/project/remove_member_confirm.html', context)
