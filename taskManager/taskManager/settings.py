@@ -160,8 +160,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-LOGIN_URL = 'user/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_URL = '/user/login/'
+LOGIN_REDIRECT_URL = '/'
 
 # ==============================================================
 # БЕЗОПАСНОСТЬ В ПРОДАКШЕНЕ (автоматически включается при DEBUG=False)
