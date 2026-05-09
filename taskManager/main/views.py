@@ -17,6 +17,11 @@ def check_project_access(user, project):
     """
     if not project.is_user_in_project(user):
         raise PermissionDenied("У вас нет доступа к этому проекту")
+    
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('main:dashboard')
+    return render(request, 'main/landing.html')
 
 @login_required
 def dashboard(request):

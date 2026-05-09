@@ -1,0 +1,259 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Kkikmee — Таск-менеджер для инди-команд{% endblock %}
+
+{% block content %}
+
+<!-- Hero секция -->
+<div class="bg-primary text-white py-5">
+    <div class="container py-3">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge bg-white text-primary mb-3 px-3 py-2 fs-6">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Для инди-команд и стартапов
+                </span>
+                <h1 class="display-5 fw-semibold mb-3 lh-sm">
+                    Задачи под контролем —<br>
+                    проекты движутся вперёд
+                </h1>
+                <p class="lead mb-4 opacity-75">
+                    Простой таск-менеджер без лишней бюрократии. Создавайте проекты,
+                    распределяйте задачи и отслеживайте прогресс всей командой.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'users:register' %}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Начать бесплатно
+                    </a>
+                    <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                    </a>
+                </div>
+                <!-- Социальное доказательство -->
+                <div class="d-flex align-items-center gap-2 mt-4 opacity-75">
+                    <div class="d-flex">
+                        <span class="badge rounded-circle bg-warning text-dark border border-primary" style="width:32px;height:32px;line-height:20px;font-size:11px;margin-left:-6px;">АК</span>
+                        <span class="badge rounded-circle bg-success text-white border border-primary" style="width:32px;height:32px;line-height:20px;font-size:11px;margin-left:-6px;">МС</span>
+                        <span class="badge rounded-circle bg-danger text-white border border-primary" style="width:32px;height:32px;line-height:20px;font-size:11px;margin-left:-6px;">ИН</span>
+                        <span class="badge rounded-circle bg-info text-dark border border-primary" style="width:32px;height:32px;line-height:20px;font-size:11px;margin-left:-6px;">ДР</span>
+                    </div>
+                    <small>Уже используют в своих командах</small>
+                </div>
+            </div>
+
+            <!-- Мини-превью дашборда -->
+            <div class="col-lg-6">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+                        <span class="fw-semibold text-dark">
+                            <i class="bi bi-grid me-2 text-primary"></i>Панель управления
+                        </span>
+                        <button class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>Новый проект
+                        </button>
+                    </div>
+                    <div class="card-body bg-light p-3">
+                        <!-- Статистика -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-3">
+                                <div class="card border-left-primary shadow-sm h-100 py-2">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="small text-uppercase text-primary fw-bold mb-1" style="font-size:10px;">Проектов</div>
+                                        <div class="h5 mb-0 fw-bold">6</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card border-left-info shadow-sm h-100 py-2">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="small text-uppercase text-info fw-bold mb-1" style="font-size:10px;">Задач</div>
+                                        <div class="h5 mb-0 fw-bold">34</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card border-left-success shadow-sm h-100 py-2">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="small text-uppercase text-success fw-bold mb-1" style="font-size:10px;">Готово</div>
+                                        <div class="h5 mb-0 fw-bold">19</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card border-left-danger shadow-sm h-100 py-2">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="small text-uppercase text-danger fw-bold mb-1" style="font-size:10px;">Просроч.</div>
+                                        <div class="h5 mb-0 fw-bold">2</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Задачи -->
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-2 py-2 d-flex align-items-center gap-2 bg-white rounded mb-1">
+                                <span class="badge bg-success rounded-circle p-1" style="width:10px;height:10px;"></span>
+                                <span class="small flex-grow-1">Разработать дизайн главной страницы</span>
+                                <span class="badge bg-success">Выполнено</span>
+                                <span class="badge rounded-circle bg-warning text-dark" style="width:26px;height:26px;line-height:16px;font-size:10px;">АК</span>
+                            </div>
+                            <div class="list-group-item px-2 py-2 d-flex align-items-center gap-2 bg-white rounded mb-1">
+                                <span class="badge bg-warning rounded-circle p-1" style="width:10px;height:10px;"></span>
+                                <span class="small flex-grow-1">Написать API для авторизации</span>
+                                <span class="badge bg-warning text-dark">В процессе</span>
+                                <span class="badge rounded-circle bg-success text-white" style="width:26px;height:26px;line-height:16px;font-size:10px;">МС</span>
+                            </div>
+                            <div class="list-group-item px-2 py-2 d-flex align-items-center gap-2 bg-white rounded">
+                                <span class="badge bg-secondary rounded-circle p-1" style="width:10px;height:10px;"></span>
+                                <span class="small flex-grow-1">Настроить CI/CD pipeline</span>
+                                <span class="badge bg-secondary">К выполнению</span>
+                                <span class="badge rounded-circle bg-info text-dark" style="width:26px;height:26px;line-height:16px;font-size:10px;">ДР</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Возможности -->
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <span class="badge bg-primary-subtle text-primary px-3 py-2 mb-3">Возможности</span>
+        <h2 class="h2 fw-semibold mb-3">Всё, что нужно небольшой команде</h2>
+        <p class="text-muted col-lg-6 mx-auto">
+            Никаких лишних настроек и корпоративной сложности — только то, что реально помогает делать дело.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-folder2-open fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Проекты с цветами</h5>
+                    <p class="text-muted mb-0">
+                        Создавайте проекты, назначайте цвета для быстрой навигации и держите всё в одном месте.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-check2-circle fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Гибкие статусы задач</h5>
+                    <p class="text-muted mb-0">
+                        К выполнению, в процессе, на проверке, выполнено — меняйте статус одним кликом без перезагрузки.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-people fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Роли в команде</h5>
+                    <p class="text-muted mb-0">
+                        Менеджер, разработчик, дизайнер, тестировщик — назначайте роли и настраивайте права доступа.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-exclamation-triangle fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Приоритеты и сроки</h5>
+                    <p class="text-muted mb-0">
+                        Устанавливайте приоритет задачам и дедлайны. Просроченные задачи сразу заметны на дашборде.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-bar-chart-line fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Дашборд со статистикой</h5>
+                    <p class="text-muted mb-0">
+                        Видите общий прогресс по всем проектам, активные задачи и просроченные дедлайны с первого взгляда.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-3 d-inline-flex p-2 mb-3">
+                        <i class="bi bi-person-plus fs-4"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-2">Коллеги и поиск</h5>
+                    <p class="text-muted mb-0">
+                        Добавляйте коллег, приглашайте их в проекты и находите нужных людей через поиск по имени.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Как работает -->
+<div class="bg-light py-5 border-top border-bottom">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 mb-3">Как работает</span>
+            <h2 class="h2 fw-semibold mb-3">Три шага до результата</h2>
+            <p class="text-muted col-lg-5 mx-auto">
+                Начните работу за пару минут — без обучения и долгой настройки.
+            </p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4 text-center">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 fw-semibold fs-5" style="width:48px;height:48px;">1</div>
+                <h5 class="fw-semibold mb-2">Создайте проект</h5>
+                <p class="text-muted mb-0">Дайте проекту имя, выберите цвет и опишите цели команды.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 fw-semibold fs-5" style="width:48px;height:48px;">2</div>
+                <h5 class="fw-semibold mb-2">Пригласите команду</h5>
+                <p class="text-muted mb-0">Добавьте коллег из списка контактов, назначьте роли и задачи.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 fw-semibold fs-5" style="width:48px;height:48px;">3</div>
+                <h5 class="fw-semibold mb-2">Отслеживайте прогресс</h5>
+                <p class="text-muted mb-0">Меняйте статусы, следите за дедлайнами, доводите проект до конца.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="container py-5">
+    <div class="card shadow-sm border-0 bg-primary text-white text-center p-5">
+        <h2 class="h2 fw-semibold mb-3">Готовы навести порядок в задачах?</h2>
+        <p class="lead opacity-75 mb-4">
+            Зарегистрируйтесь бесплатно и запустите первый проект прямо сейчас.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{% url 'users:register' %}" class="btn btn-light btn-lg px-5">
+                <i class="bi bi-person-plus me-2"></i>Создать аккаунт
+            </a>
+            <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg px-5">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

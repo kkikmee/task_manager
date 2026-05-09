@@ -4,7 +4,8 @@ from . import views
 app_name = 'main'
 
 urlpatterns = [
-        path('', views.dashboard, name='dashboard'),
+        path('', views.landing, name='landing'),
+        path('dashboard/', views.dashboard, name='dashboard'),
     
         # 📁 URLs для проектов
         path('projects/create/', views.project_create, name='project_create'),  # Создание проекта

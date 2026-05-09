@@ -7,7 +7,7 @@ ok()   { echo -e "${GREEN}[OK]${NC}    $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 fail() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-DOMAIN="kkikmee.com.ru"
+DOMAIN="kkikmee.ru"
 EMAIL=""
 
 CMD=${1:-help}
